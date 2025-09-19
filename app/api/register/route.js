@@ -1,0 +1,114 @@
+import { NextResponse } from 'next/server';
+import { connectToDatabase } from '../../../lib/mongodb';
+import WaitlistEntry from '../../../models/WaitlistEntry';
+import { hashPassword, sanitizeString, toNumber, validatePhone, validatePassword, validateCRNumber } from '../../../lib/security';
+
+import { v2 as cloudinary } from 'cloudinary';
+
+const hasCloudinary = Boolean(
+	process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET
+);
+
+if (hasCloudinary) {
+	cloudinary.config({
+		cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+		api_key: process.env.CLOUDINARY_API_KEY,
+		api_secret: process.env.CLOUDINARY_API_SECRET,
+		secure: true,
+	});
+}
+
+async function uploadImageFromBase64(dataUrl) {
+	if (!hasCloudinary || !dataUrl) return '';
+	try {
+		const res = await cloudinary.uploader.upload(dataUrl, { folder: 'waitinglist-products' });
+		return res.secure_url || '';
+	} catch (e) {
+		console.error('Cloudinary upload failed', e);
+		return '';
+	}
+}
+
+export async function POST(req) {
+	try {
+		const contentType = req.headers.get('content-type') || '';
+		let body;
+		if (contentType.includes('application/json')) {
+			body = await req.json();
+		} else if (contentType.includes('multipart/form-data')) {
+			const form = await req.formData();
+			const json = JSON.parse(form.get('payload') || '{}');
+			// images may come as productImages[index]
+			const images = [];
+			for (const [key, val] of form.entries()) {
+				if (key.startsWith('productImage_') && val && typeof val !== 'string') {
+					const buf = Buffer.from(await val.arrayBuffer());
+					const base64 = `data:${val.type};base64,${buf.toString('base64')}`;
+					images.push({ key, base64 });
+				}
+			}
+			body = { ...json, __uploadedFiles: images };
+		} else {
+			return NextResponse.json({ error: 'Unsupported content type' }, { status: 415 });
+		}
+
+		const account = body.account || {};
+		const store = body.store || {};
+		let products = Array.isArray(body.products) ? body.products : [];
+
+		// Basic validation
+		if (!account.email || !account.username || !account.password || !store.storeName || !store.crNumber) {
+			return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+		}
+
+		// Field validation
+		if (!validatePhone(account.phone)) {
+			return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 });
+		}
+		if (!validatePassword(account.password)) {
+			return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
+		}
+		if (!validateCRNumber(store.crNumber)) {
+			return NextResponse.json({ error: 'CR number must be 10 digits' }, { status: 400 });
+		}
+
+		await connectToDatabase();
+
+		// Map products
+		products = await Promise.all(
+			products.map(async (p, idx) => {
+				const name = sanitizeString(p.name, 120);
+				const description = sanitizeString(p.description, 2000);
+				const price = toNumber(p.price);
+				const sku = sanitizeString(p.sku, 120);
+				let imageUrl = sanitizeString(p.imageUrl || '', 1000);
+				if (!imageUrl && body.__uploadedFiles) {
+					const file = body.__uploadedFiles.find(f => f.key === `productImage_${idx}`);
+					if (file) imageUrl = await uploadImageFromBase64(file.base64);
+				}
+				return { name, description, price, sku, imageUrl, additional: p.additional || {} };
+			})
+		);
+
+		const doc = await WaitlistEntry.create({
+			account: {
+				email: sanitizeString(account.email, 200),
+				phone: sanitizeString(account.phone, 20),
+				countryCode: sanitizeString(account.countryCode, 10),
+				username: sanitizeString(account.username, 120),
+				passwordHash: hashPassword(account.password),
+			},
+			store: {
+				storeName: sanitizeString(store.storeName, 200),
+				crNumber: sanitizeString(store.crNumber, 120),
+			},
+			products,
+		});
+
+		return NextResponse.json({ ok: true, id: doc._id });
+	} catch (e) {
+		console.error(e);
+		return NextResponse.json({ error: 'Unexpected error' }, { status: 500 });
+	}
+}
+
