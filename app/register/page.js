@@ -50,7 +50,7 @@ export default function RegisterPage() {
 			setBusy(false);
 			return;
 		}
-		
+		const apiUrl=process.env.API_URL
 		try {
 			const form = new FormData();
 			const payload = {
@@ -62,7 +62,7 @@ export default function RegisterPage() {
 			products.forEach((p, i) => {
 				if (p.imageFile) form.append(`productImage_${i}`, p.imageFile);
 			});
-			const res = await fetch('/api/register', { method: 'POST', body: form });
+			const res = await fetch(`${apiUrl}/api/register`, { method: 'POST', body: form });
 			const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Failed');
             setAccount({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
