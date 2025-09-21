@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../lib/mongodb';
+import { connectToDatabase } from '../../../lib/mong			store: {
+				name: sanitizeString(store.storeName, 200),
+				crNumber: sanitizeString(store.crNumber, 20),
+				logoUrl,
+				bannerUrl
+			},
 import WaitlistEntry from '../../../models/WaitlistEntry';
 import { hashPassword, sanitizeString, toNumber, validatePhone, validatePassword, validateCRNumber } from '../../../lib/security';
 
@@ -40,14 +45,15 @@ export async function POST(req) {
 			const json = JSON.parse(form.get('payload') || '{}');
 			// images may come as productImages[index]
 			const images = [];
+			const uploadedFiles = {};
 			for (const [key, val] of form.entries()) {
-				if (key.startsWith('productImage_') && val && typeof val !== 'string') {
+				if ((key === 'logoImage' || key === 'bannerImage') && val && typeof val !== 'string') {
 					const buf = Buffer.from(await val.arrayBuffer());
 					const base64 = `data:${val.type};base64,${buf.toString('base64')}`;
-					images.push({ key, base64 });
+					uploadedFiles[key] = base64;
 				}
 			}
-			body = { ...json, __uploadedFiles: images };
+			body = { ...json, __uploadedFiles: uploadedFiles };
 		} else {
 			return NextResponse.json({ error: 'Unsupported content type' }, { status: 415 });
 		}
@@ -74,21 +80,17 @@ export async function POST(req) {
 
 		await connectToDatabase();
 
-		// Map products
-		products = await Promise.all(
-			products.map(async (p, idx) => {
-				const name = sanitizeString(p.name, 120);
-				const description = sanitizeString(p.description, 2000);
-				const price = toNumber(p.price);
-				const sku = sanitizeString(p.sku, 120);
-				let imageUrl = sanitizeString(p.imageUrl || '', 1000);
-				if (!imageUrl && body.__uploadedFiles) {
-					const file = body.__uploadedFiles.find(f => f.key === `productImage_${idx}`);
-					if (file) imageUrl = await uploadImageFromBase64(file.base64);
-				}
-				return { name, description, price, sku, imageUrl, additional: p.additional || {} };
-			})
-		);
+		// Handle logo and banner image uploads
+		let logoUrl = '';
+		let bannerUrl = '';
+		if (body.__uploadedFiles) {
+			if (body.__uploadedFiles.logoImage) {
+				logoUrl = await uploadImageFromBase64(body.__uploadedFiles.logoImage);
+			}
+			if (body.__uploadedFiles.bannerImage) {
+				bannerUrl = await uploadImageFromBase64(body.__uploadedFiles.bannerImage);
+			}
+		}
 
 		const doc = await WaitlistEntry.create({
 			account: {
