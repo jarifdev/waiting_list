@@ -13,7 +13,6 @@ export default function RegisterPage() {
 		logoImage: null,
 		bannerImage: null 
 	});
-	const [previewImage, setPreviewImage] = useState(null);
 	const [status, setStatus] = useState({ type: '', message: '' });
 	const [errors, setErrors] = useState({});
 	const [busy, setBusy] = useState(false);
@@ -72,7 +71,7 @@ export default function RegisterPage() {
                 logoImage: null,
                 bannerImage: null 
             });
-            setPreviewImage(null);
+
             router.push('/submitted');
 		} catch (e) {
 			setStatus({ type: 'error', message: e.message || 'Something went wrong' });
@@ -88,9 +87,6 @@ export default function RegisterPage() {
 					<h1>{t('form_title')}</h1>
 					<p>{t('form_subtitle')}</p>
 				</div>
-				{previewImage && (
-					<img src={previewImage} alt="Preview" className="image-preview" />
-				)}
 			</div>
             <div className="split-layout__form">
                 <div className="card">
@@ -106,7 +102,6 @@ export default function RegisterPage() {
                                 const file = e.target.files[0];
                                 if (file && file.type.startsWith('image/')) {
                                     setStore(prev => ({ ...prev, logoImage: file }));
-                                    setPreviewImage(URL.createObjectURL(file));
                                 }
                             }} 
                         />
@@ -147,7 +142,7 @@ export default function RegisterPage() {
 					</div>
 					<div>
 						<label>{t('phone')}</label>
-						<input value={account.phone} onChange={e => setAccount({ ...account, phone: e.target.value })} placeholder="5xxxxxxxx" type="tel" />
+						<input value={account.phone} onChange={e => setAccount({ ...account, phone: e.target.value })} placeholder="xxxxxxxx" type="tel" />
 						{errors.phone && <div className="error">{errors.phone}</div>}
 					</div>
 				</div>
@@ -155,11 +150,11 @@ export default function RegisterPage() {
 				<div className="row">
 					<div>
                         <label>{t('username')}</label>
-						<input value={account.username} onChange={e => setAccount({ ...account, username: e.target.value })} placeholder="your-username" />
+						<input value={account.username} onChange={e => setAccount({ ...account, username: e.target.value })} placeholder="Username" />
 					</div>
 					<div>
                         <label>{t('password')}</label>
-						<input value={account.password} onChange={e => setAccount({ ...account, password: e.target.value })} type="password" placeholder="password" />
+						<input value={account.password} onChange={e => setAccount({ ...account, password: e.target.value })} type="password" placeholder="Password" />
 						{errors.password && <div className="error">{errors.password}</div>}
 					</div>
 				</div>

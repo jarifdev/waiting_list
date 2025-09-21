@@ -190,3 +190,44 @@ button:focus {
   padding: 8px;
 }
 
+/* Submitted page styles */
+.submitted-page {
+  min-height: calc(100vh - 60px);
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 60px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.submitted-content {
+  background: var(--card);
+  padding: 3rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.06);
+  max-width: 500px;
+  width: 100%;
+}
+
+.submitted-content h1 {
+  margin: 0 0 1rem;
+  font-size: 2rem;
+  color: var(--text);
+}
+
+.submitted-content .success {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+}
+
+.submitted-content .actions {
+  margin-top: 2rem;
+  justify-content: center;
+}
+
+.submitted-content button {
+  background: var(--accent);
+  min-width: 160px;
+}
