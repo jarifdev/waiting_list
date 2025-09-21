@@ -1,10 +1,5 @@
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../lib/mong			store: {
-				name: sanitizeString(store.storeName, 200),
-				crNumber: sanitizeString(store.crNumber, 20),
-				logoUrl,
-				bannerUrl
-			},
+import { connectToDatabase } from '../../../lib/mongodb';			
 import WaitlistEntry from '../../../models/WaitlistEntry';
 import { hashPassword, sanitizeString, toNumber, validatePhone, validatePassword, validateCRNumber } from '../../../lib/security';
 
