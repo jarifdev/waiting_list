@@ -7,7 +7,7 @@ export default function HomePage() {
 	return (
 		<div className="split-layout" dir={dir}>
 			<div className="split-layout__image">
-				<div className="muted">Welcome Image</div>
+				<img src="/obazaar5.png" alt="Obazaar" className="left-cover" />
 			</div>
 			<div className="split-layout__form">
 				<div className="card">
