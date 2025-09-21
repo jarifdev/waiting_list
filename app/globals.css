@@ -88,19 +88,20 @@ button:disabled {
 }
 
 .split-layout__image {
-  flex: 1;
+  flex: 0 0 55%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem;
+  padding: 0;
   background: #f8f9fa;
-  gap: 2rem;
+  overflow: hidden;
 }
 
 .split-layout__image img {
-  max-width: 200px;
-  margin-bottom: 2rem;
+  width: 100%;
+  height: 100vh;
+  object-fit: cover;
+  display: block;
 }
 
 .split-layout__image h1 {
@@ -115,6 +116,32 @@ button:disabled {
   color: #4a5568;
   max-width: 80%;
 }
+
+/* Register page specific styles */
+.register-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2rem;
+}
+
+.register-text {
+  text-align: center;
+  color: #15324b;
+  max-width: 520px;
+  transform: translateY(0%);
+}
+
+.register-text h1 { font-size: 3.25rem; line-height: 1.05; margin: 0 0 0.75rem 0; }
+.register-text p { color: rgba(21,50,75,0.85); margin-left: 3rem; font-size: 1.125rem; }
+
+@media (max-width: 900px) {
+  .register-text h1 { font-size: 2.25rem; }
+  .register-text p { font-size: 1rem; }
+}
+
+/* hide the default muted placeholder on register page */
+.register-image .muted { display: none; }
 
 .split-layout__form {
   flex: 1;

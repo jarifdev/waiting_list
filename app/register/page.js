@@ -83,16 +83,15 @@ export default function RegisterPage() {
 
     return (
         <div className="split-layout" dir={dir}>
-            <div className="split-layout__image">
-                <img src="/logo.png" alt="Company Logo" />
-                <h1>{t('form_title')}</h1>
-                <p>{t('form_subtitle')}</p>
-                {previewImage ? (
-                    <img src={previewImage} alt="Preview" className="image-preview" />
-                ) : (
-                    <div className="muted">{t('image_preview')}</div>
-                )}
-            </div>
+		<div className="split-layout__image register-image" style={{ backgroundImage: "url('/obazaar6.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+				<div className="register-text">
+					<h1>{t('form_title')}</h1>
+					<p>{t('form_subtitle')}</p>
+				</div>
+				{previewImage && (
+					<img src={previewImage} alt="Preview" className="image-preview" />
+				)}
+			</div>
             <div className="split-layout__form">
                 <div className="card">
                     <h2>{t('form_title')}</h2>
