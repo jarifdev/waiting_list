@@ -9,9 +9,7 @@ export default function RegisterPage() {
 	const [account, setAccount] = useState({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
 	const [store, setStore] = useState({ 
 		storeName: '', 
-		crNumber: '', 
-		logoImage: null,
-		bannerImage: null 
+		crNumber: ''
 	});
 	const [status, setStatus] = useState({ type: '', message: '' });
 	const [errors, setErrors] = useState({});
@@ -59,17 +57,14 @@ export default function RegisterPage() {
 				}
 			};
 			form.append('payload', JSON.stringify(payload));
-			if (store.logoImage) form.append('logoImage', store.logoImage);
-			if (store.bannerImage) form.append('bannerImage', store.bannerImage);
+
 			const res = await fetch(`/api/register`, { method: 'POST', body: form });
 			const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Failed');
             setAccount({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
             setStore({ 
                 storeName: '', 
-                crNumber: '',
-                logoImage: null,
-                bannerImage: null 
+                crNumber: ''
             });
 
             router.push('/submitted');
@@ -92,34 +87,6 @@ export default function RegisterPage() {
                 <div className="card">
                     <h2>{t('form_title')}</h2>
                     <p className="muted">{t('form_subtitle')}</p>
-
-                <div className="file-input-wrapper">
-                        <label>{t('logo_image')}</label>
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={e => {
-                                const file = e.target.files[0];
-                                if (file && file.type.startsWith('image/')) {
-                                    setStore(prev => ({ ...prev, logoImage: file }));
-                                }
-                            }} 
-                        />
-                    </div>
-
-                    <div className="file-input-wrapper">
-                        <label>{t('banner_image')}</label>
-                        <input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={e => {
-                                const file = e.target.files[0];
-                                if (file && file.type.startsWith('image/')) {
-                                    setStore(prev => ({ ...prev, bannerImage: file }));
-                                }
-                            }} 
-                        />
-                    </div>
 
                     <label>{t('email')}</label>
                     <input value={account.email} onChange={e => setAccount({ ...account, email: e.target.value })} placeholder="you@example.com" type="email" />
