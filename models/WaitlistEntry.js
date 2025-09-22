@@ -24,8 +24,9 @@ const WaitlistEntrySchema = new Schema(
 		store: {
 			storeName: { type: String, required: true, trim: true },
 			crNumber: { type: String, required: true, trim: true },
+			logoUrl: { type: String, default: '' },
+			bannerUrl: { type: String, default: '' }
 		},
-		products: { type: [ProductSchema], default: [] },
 	},
 	{ timestamps: true }
 );

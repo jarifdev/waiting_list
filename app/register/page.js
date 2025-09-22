@@ -4,23 +4,21 @@ import { useRouter } from 'next/navigation';
 import { useLang } from '../../components/LangProvider';
 import { validatePhone, validatePassword, validateCRNumber } from '../../lib/security';
 
-function emptyProduct() {
-	return { name: '', description: '', price: '', sku: '', imageFile: null };
-}
-
 export default function RegisterPage() {
     const { t, dir } = useLang();
 	const [account, setAccount] = useState({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
-	const [store, setStore] = useState({ storeName: '', crNumber: '' });
-	const [products, setProducts] = useState([emptyProduct()]);
+	const [store, setStore] = useState({ 
+		storeName: '', 
+		crNumber: '', 
+		logoImage: null,
+		bannerImage: null 
+	});
 	const [status, setStatus] = useState({ type: '', message: '' });
 	const [errors, setErrors] = useState({});
 	const [busy, setBusy] = useState(false);
     const router = useRouter();
 
-	function setProductValue(index, key, value) {
-		setProducts(prev => prev.map((p, i) => (i === index ? { ...p, [key]: value } : p)));
-	}
+
 
 	async function submit() {
 		setBusy(true);
@@ -50,24 +48,30 @@ export default function RegisterPage() {
 			setBusy(false);
 			return;
 		}
-		const apiUrl=process.env.API_URL
+		const apiUrl=process.env.API_URL;
 		try {
 			const form = new FormData();
 			const payload = {
 				account,
-				store,
-				products: products.map(p => ({ name: p.name, description: p.description, price: p.price, sku: p.sku })),
+				store: {
+					storeName: store.storeName,
+					crNumber: store.crNumber
+				}
 			};
 			form.append('payload', JSON.stringify(payload));
-			products.forEach((p, i) => {
-				if (p.imageFile) form.append(`productImage_${i}`, p.imageFile);
-			});
+			if (store.logoImage) form.append('logoImage', store.logoImage);
+			if (store.bannerImage) form.append('bannerImage', store.bannerImage);
 			const res = await fetch(`/api/register`, { method: 'POST', body: form });
 			const json = await res.json();
             if (!res.ok) throw new Error(json.error || 'Failed');
             setAccount({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
-            setStore({ storeName: '', crNumber: '' });
-            setProducts([emptyProduct()]);
+            setStore({ 
+                storeName: '', 
+                crNumber: '',
+                logoImage: null,
+                bannerImage: null 
+            });
+
             router.push('/submitted');
 		} catch (e) {
 			setStatus({ type: 'error', message: e.message || 'Something went wrong' });
@@ -77,13 +81,48 @@ export default function RegisterPage() {
 	}
 
     return (
-        <div className="container" dir={dir}>
-            <div className="card">
-                <h2>{t('form_title')}</h2>
-                <p className="muted">{t('form_subtitle')}</p>
+        <div className="split-layout" dir={dir}>
+		<div className="split-layout__image register-image" style={{ backgroundImage: "url('/obazaar6.png')", backgroundSize: 'cover', backgroundPosition: 'center' }}>
+				<div className="register-text">
+					<h1>{t('form_title')}</h1>
+					<p>{t('form_subtitle')}</p>
+				</div>
+			</div>
+            <div className="split-layout__form">
+                <div className="card">
+                    <h2>{t('form_title')}</h2>
+                    <p className="muted">{t('form_subtitle')}</p>
 
-                <label>{t('email')}</label>
-				<input value={account.email} onChange={e => setAccount({ ...account, email: e.target.value })} placeholder="you@example.com" type="email" />
+                <div className="file-input-wrapper">
+                        <label>{t('logo_image')}</label>
+                        <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={e => {
+                                const file = e.target.files[0];
+                                if (file && file.type.startsWith('image/')) {
+                                    setStore(prev => ({ ...prev, logoImage: file }));
+                                }
+                            }} 
+                        />
+                    </div>
+
+                    <div className="file-input-wrapper">
+                        <label>{t('banner_image')}</label>
+                        <input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={e => {
+                                const file = e.target.files[0];
+                                if (file && file.type.startsWith('image/')) {
+                                    setStore(prev => ({ ...prev, bannerImage: file }));
+                                }
+                            }} 
+                        />
+                    </div>
+
+                    <label>{t('email')}</label>
+                    <input value={account.email} onChange={e => setAccount({ ...account, email: e.target.value })} placeholder="you@example.com" type="email" />
                 
                 <div className="row">
 					<div>
@@ -103,7 +142,7 @@ export default function RegisterPage() {
 					</div>
 					<div>
 						<label>{t('phone')}</label>
-						<input value={account.phone} onChange={e => setAccount({ ...account, phone: e.target.value })} placeholder="5xxxxxxxx" type="tel" />
+						<input value={account.phone} onChange={e => setAccount({ ...account, phone: e.target.value })} placeholder="xxxxxxxx" type="tel" />
 						{errors.phone && <div className="error">{errors.phone}</div>}
 					</div>
 				</div>
@@ -111,11 +150,11 @@ export default function RegisterPage() {
 				<div className="row">
 					<div>
                         <label>{t('username')}</label>
-						<input value={account.username} onChange={e => setAccount({ ...account, username: e.target.value })} placeholder="your-username" />
+						<input value={account.username} onChange={e => setAccount({ ...account, username: e.target.value })} placeholder="Username" />
 					</div>
 					<div>
                         <label>{t('password')}</label>
-						<input value={account.password} onChange={e => setAccount({ ...account, password: e.target.value })} type="password" placeholder="password" />
+						<input value={account.password} onChange={e => setAccount({ ...account, password: e.target.value })} type="password" placeholder="Password" />
 						{errors.password && <div className="error">{errors.password}</div>}
 					</div>
 				</div>
@@ -132,49 +171,14 @@ export default function RegisterPage() {
 					</div>
 				</div>
 
-                <h3>{t('products')}</h3>
-				<div className="products">
-					{products.map((p, idx) => (
-						<div key={idx} className="product">
-							<div className="row">
-								<div>
-                                    <label>{t('name')}</label>
-									<input value={p.name} onChange={e => setProductValue(idx, 'name', e.target.value)} placeholder="Product name" />
-								</div>
-								<div>
-                                    <label>{t('sku')}</label>
-									<input value={p.sku} onChange={e => setProductValue(idx, 'sku', e.target.value)} placeholder="SKU-001" />
-								</div>
-							</div>
-                            <label>{t('description')}</label>
-							<textarea value={p.description} onChange={e => setProductValue(idx, 'description', e.target.value)} rows={3} placeholder="Details" />
-							<div className="row">
-								<div>
-                                    <label>{t('price')}</label>
-									<input value={p.price} onChange={e => setProductValue(idx, 'price', e.target.value)} placeholder="0" type="number" min="0" step="0.01" />
-								</div>
-								<div>
-                                    <label>{t('image')}</label>
-									<input type="file" accept="image/*" onChange={e => setProductValue(idx, 'imageFile', e.target.files?.[0] || null)} />
-								</div>
-							</div>
-							<div className="actions">
-                                <button type="button" onClick={() => setProducts(prev => [...prev, emptyProduct()])}>{t('add_product')}</button>
-								{products.length > 1 && (
-                                    <button type="button" onClick={() => setProducts(prev => prev.slice(0, -1))} style={{ background: '#374151' }}>{t('remove_last')}</button>
-								)}
-							</div>
-						</div>
-					))}
-				</div>
-
-				<div style={{ height: 16 }} />
-				{status.type === 'error' && <div className="error">{status.message}</div>}
-				<div className="actions">
+                <div style={{ height: 16 }} />
+                {status.type === 'error' && <div className="error">{status.message}</div>}
+                <div className="actions">
                     <button disabled={busy} onClick={submit}>{busy ? 'Submitting…' : t('submit')}</button>
-				</div>
-			</div>
-		</div>
-	);
+                </div>
+                </div>
+            </div>
+        </div>
+    );
 }
 

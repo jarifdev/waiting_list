@@ -1,5 +1,5 @@
 export const metadata = {
-	title: 'Waiting List Ecommerce',
+	title: 'Obazaar Waiting List',
 	description: 'Pre-launch intake for ecommerce platform',
 };
 
