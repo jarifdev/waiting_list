@@ -31,27 +31,7 @@ async function uploadImageFromBase64(dataUrl) {
 
 export async function POST(req) {
 	try {
-		const contentType = req.headers.get('content-type') || '';
-		let body;
-		if (contentType.includes('application/json')) {
-			body = await req.json();
-		} else if (contentType.includes('multipart/form-data')) {
-			const form = await req.formData();
-			const json = JSON.parse(form.get('payload') || '{}');
-			// images may come as productImages[index]
-			const images = [];
-			const uploadedFiles = {};
-			for (const [key, val] of form.entries()) {
-				if ((key === 'logoImage' || key === 'bannerImage') && val && typeof val !== 'string') {
-					const buf = Buffer.from(await val.arrayBuffer());
-					const base64 = `data:${val.type};base64,${buf.toString('base64')}`;
-					uploadedFiles[key] = base64;
-				}
-			}
-			body = { ...json, __uploadedFiles: uploadedFiles };
-		} else {
-			return NextResponse.json({ error: 'Unsupported content type' }, { status: 415 });
-		}
+		const body = await req.json();
 
 		const account = body.account || {};
 		const store = body.store || {};

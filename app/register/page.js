@@ -25,18 +25,45 @@ export default function RegisterPage() {
 		
 		// Client-side validation
 		const newErrors = {};
+		
+		// Email validation
+		if (!account.email) {
+			newErrors.email = t('Email required');
+		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account.email)) {
+			newErrors.email = t('email_invalid');
+		}
+
+		// Phone validation
 		if (!account.phone) {
-			newErrors.phone = t('phone_required');
+			newErrors.phone = t('Phone required');
 		} else if (!validatePhone(account.phone)) {
 			newErrors.phone = t('phone_invalid');
 		}
+
+		// Username validation
+		if (!account.username) {
+			newErrors.username = t('Username required');
+		} else if (account.username.length < 3) {
+			newErrors.username = t('username_min');
+		}
+
+		// Password validation
 		if (!account.password) {
-			newErrors.password = t('password_required');
+			newErrors.password = t('Password required');
 		} else if (!validatePassword(account.password)) {
 			newErrors.password = t('password_min');
 		}
+
+		// Store name validation
+		if (!store.storeName) {
+			newErrors.storeName = t('Store Name Required');
+		} else if (store.storeName.length < 2) {
+			newErrors.storeName = t('Store Name too small');
+		}
+
+		// CR Number validation
 		if (!store.crNumber) {
-			newErrors.crNumber = t('cr_required');
+			newErrors.crNumber = t('CR Required');
 		} else if (!validateCRNumber(store.crNumber)) {
 			newErrors.crNumber = t('cr_invalid');
 		}
@@ -46,9 +73,8 @@ export default function RegisterPage() {
 			setBusy(false);
 			return;
 		}
-		const apiUrl=process.env.API_URL;
+
 		try {
-			const form = new FormData();
 			const payload = {
 				account,
 				store: {
@@ -56,18 +82,25 @@ export default function RegisterPage() {
 					crNumber: store.crNumber
 				}
 			};
-			form.append('payload', JSON.stringify(payload));
 
-			const res = await fetch(`/api/register`, { method: 'POST', body: form });
+			const res = await fetch('/api/register', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(payload)
+			});
+
 			const json = await res.json();
-            if (!res.ok) throw new Error(json.error || 'Failed');
-            setAccount({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
-            setStore({ 
-                storeName: '', 
-                crNumber: ''
-            });
+			if (!res.ok) throw new Error(json.error || 'Failed');
 
-            router.push('/submitted');
+			setAccount({ email: '', phone: '', countryCode: '+968', username: '', password: '' });
+			setStore({ 
+				storeName: '', 
+				crNumber: ''
+			});
+
+			router.push('/submitted');
 		} catch (e) {
 			setStatus({ type: 'error', message: e.message || 'Something went wrong' });
 		} finally {
@@ -88,55 +121,86 @@ export default function RegisterPage() {
                     <h2>{t('form_title')}</h2>
                     <p className="muted">{t('form_subtitle')}</p>
 
-                    <label>{t('email')}</label>
-                    <input value={account.email} onChange={e => setAccount({ ...account, email: e.target.value })} placeholder="you@example.com" type="email" />
+                    <div className="form-group">
+                        <label>{t('email')}</label>
+                        <input 
+                            value={account.email} 
+                            onChange={e => setAccount({ ...account, email: e.target.value })} 
+                            placeholder="you@example.com" 
+                            type="email" 
+                        />
+                        {errors.email && <div className="error">{errors.email}</div>}
+                    </div>
                 
-                <div className="row">
-					<div>
-						<label>{t('country_code')}</label>
-						<select value={account.countryCode} onChange={e => setAccount({ ...account, countryCode: e.target.value })}>
-							<option value="+968">🇴🇲 +968 (Oman)</option>
-							<option value="+966">🇸🇦 +966 (Saudi Arabia)</option>
-							<option value="+971">🇦🇪 +971 (UAE)</option>
-							<option value="+965">🇰🇼 +965 (Kuwait)</option>
-							<option value="+974">🇶🇦 +974 (Qatar)</option>
-							<option value="+973">🇧🇭 +973 (Bahrain)</option>
-							<option value="+1">🇺🇸 +1 (USA)</option>
-							<option value="+44">🇬🇧 +44 (UK)</option>
-							<option value="+33">🇫🇷 +33 (France)</option>
-							<option value="+49">🇩🇪 +49 (Germany)</option>
-						</select>
-					</div>
-					<div>
-						<label>{t('phone')}</label>
-						<input value={account.phone} onChange={e => setAccount({ ...account, phone: e.target.value })} placeholder="xxxxxxxx" type="tel" />
-						{errors.phone && <div className="error">{errors.phone}</div>}
-					</div>
-				</div>
+                    <div className="row">
+                        <div className="form-group">
+                            <label>{t('country_code')}</label>
+                            <select 
+                                value={account.countryCode} 
+                                onChange={e => setAccount({ ...account, countryCode: e.target.value })}
+                            >
+                                <option value="+968">🇴🇲 +968 (Oman)</option>
+                                <option value="+966">🇸🇦 +966 (Saudi Arabia)</option>
+                                <option value="+971">🇦🇪 +971 (UAE)</option>
+                                <option value="+965">🇰🇼 +965 (Kuwait)</option>
+                                <option value="+974">🇶🇦 +974 (Qatar)</option>
+                                <option value="+973">🇧🇭 +973 (Bahrain)</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>{t('phone')}</label>
+                            <input 
+                                value={account.phone} 
+                                onChange={e => setAccount({ ...account, phone: e.target.value })} 
+                                placeholder="xxxxxxxx" 
+                                type="tel" 
+                            />
+                            {errors.phone && <div className="error">{errors.phone}</div>}
+                        </div>
+                    </div>
 
-				<div className="row">
-					<div>
-                        <label>{t('username')}</label>
-						<input value={account.username} onChange={e => setAccount({ ...account, username: e.target.value })} placeholder="Username" />
-					</div>
-					<div>
-                        <label>{t('password')}</label>
-						<input value={account.password} onChange={e => setAccount({ ...account, password: e.target.value })} type="password" placeholder="Password" />
-						{errors.password && <div className="error">{errors.password}</div>}
-					</div>
-				</div>
+                    <div className="row">
+                        <div className="form-group">
+                            <label>{t('username')}</label>
+                            <input 
+                                value={account.username} 
+                                onChange={e => setAccount({ ...account, username: e.target.value })} 
+                                placeholder="Username" 
+                            />
+                            {errors.username && <div className="error">{errors.username}</div>}
+                        </div>
+                        <div className="form-group">
+                            <label>{t('password')}</label>
+                            <input 
+                                value={account.password} 
+                                onChange={e => setAccount({ ...account, password: e.target.value })} 
+                                type="password" 
+                                placeholder="Password" 
+                            />
+                            {errors.password && <div className="error">{errors.password}</div>}
+                        </div>
+                    </div>
 
-				<div className="row">
-					<div>
-                        <label>{t('store_name')}</label>
-						<input value={store.storeName} onChange={e => setStore({ ...store, storeName: e.target.value })} placeholder="My Store" />
-					</div>
-					<div>
-                        <label>{t('cr_number')}</label>
-						<input value={store.crNumber} onChange={e => setStore({ ...store, crNumber: e.target.value })} placeholder="123456" />
-						{errors.crNumber && <div className="error">{errors.crNumber}</div>}
-					</div>
-				</div>
+                    <div className="row">
+                        <div className="form-group">
+                            <label>{t('store_name')}</label>
+                            <input 
+                                value={store.storeName} 
+                                onChange={e => setStore({ ...store, storeName: e.target.value })} 
+                                placeholder="My Store" 
+                            />
+                            {errors.storeName && <div className="error">{errors.storeName}</div>}
+                        </div>
+                        <div className="form-group">
+                            <label>{t('cr_number')}</label>
+                            <input 
+                                value={store.crNumber} 
+                                onChange={e => setStore({ ...store, crNumber: e.target.value })} 
+                                placeholder="123456" 
+                            />
+                            {errors.crNumber && <div className="error">{errors.crNumber}</div>}
+                        </div>
+                    </div>
 
                 <div style={{ height: 16 }} />
                 {status.type === 'error' && <div className="error">{status.message}</div>}

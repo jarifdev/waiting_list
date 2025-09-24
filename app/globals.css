@@ -158,9 +158,32 @@ button:focus {
 .register-text h1 { font-size: 3.25rem; line-height: 1.05; margin: 0 0 0.75rem 0; }
 .register-text p { color: rgba(21,50,75,0.85); margin-left: 3rem; font-size: 1.125rem; }
 
-@media (max-width: 900px) {
-  .register-text h1 { font-size: 2.25rem; }
-  .register-text p { font-size: 1rem; }
+@media (max-width: 768px) {
+  .split-layout {
+    display: block;
+  }
+  
+  .split-layout__image {
+    display: none;
+  }
+
+  .split-layout__form {
+    padding: 2rem;
+    width: 100%;
+  }
+
+  .register-text h1 { 
+    font-size: 2.25rem; 
+  }
+  
+  .register-text p { 
+    font-size: 1rem; 
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 /* hide the default muted placeholder on register page */
