@@ -30,35 +30,35 @@ export default function RegisterPage() {
 		if (!account.email) {
 			newErrors.email = t('Email required');
 		} else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(account.email)) {
-			newErrors.email = t('email_invalid');
+			newErrors.email = t('Email invalid');
 		}
 
 		// Phone validation
 		if (!account.phone) {
 			newErrors.phone = t('Phone required');
 		} else if (!validatePhone(account.phone)) {
-			newErrors.phone = t('phone_invalid');
+			newErrors.phone = t('Phone invalid');
 		}
 
 		// Username validation
 		if (!account.username) {
 			newErrors.username = t('Username required');
 		} else if (account.username.length < 3) {
-			newErrors.username = t('username_min');
+			newErrors.username = t('Username too short');
 		}
 
 		// Password validation
 		if (!account.password) {
 			newErrors.password = t('Password required');
 		} else if (!validatePassword(account.password)) {
-			newErrors.password = t('password_min');
+			newErrors.password = t('Password too short');
 		}
 
 		// Store name validation
 		if (!store.storeName) {
 			newErrors.storeName = t('Store Name Required');
-		} else if (store.storeName.length < 2) {
-			newErrors.storeName = t('Store Name too small');
+		} else if (store.storeName.length < 1) {
+			newErrors.storeName = t('Store Name too short');
 		}
 
 		// CR Number validation

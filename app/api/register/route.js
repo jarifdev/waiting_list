@@ -50,9 +50,15 @@ export async function POST(req) {
 			return NextResponse.json({ error: 'Password must be at least 8 characters' }, { status: 400 });
 		}
 		if (!validateCRNumber(store.crNumber)) {
-			return NextResponse.json({ error: 'CR number must be 10 digits' }, { status: 400 });
+			return NextResponse.json({ error: 'CR number must be 7 digits' }, { status: 400 });
 		}
 
+		// Ensure the MongoDB URI is configured before attempting to connect —
+		// this prevents a thrown exception and gives a clear error in responses.
+		if (!process.env.MONGODB_URI) {
+			console.error('Missing MONGODB_URI environment variable');
+			return NextResponse.json({ error: 'Server misconfiguration: missing MONGODB_URI' }, { status: 500 });
+		}
 		await connectToDatabase();
 
 		// Handle logo and banner image uploads
