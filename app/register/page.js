@@ -65,7 +65,7 @@ export default function RegisterPage() {
 		if (!store.crNumber) {
 			newErrors.crNumber = t('CR Required');
 		} else if (!validateCRNumber(store.crNumber)) {
-			newErrors.crNumber = t('cr_invalid');
+			newErrors.crNumber = t('CR number must be 7 digits');
 		}
 		
 		if (Object.keys(newErrors).length > 0) {
